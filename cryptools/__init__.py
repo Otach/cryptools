@@ -6,7 +6,8 @@ from .elgamal import *
 from math import gcd
 from Crypto.Util.number import long_to_bytes, bytes_to_long, size
 
-__author__  = 'sonickun'
+__author__ = 'sonickun'
 __version__ = '0.0.1'
 __license__ = 'MIT'
-
+__maintainer__ = 'otach'
+__maintainer_email__ = 'mason@swingproxy.com'
