@@ -7,13 +7,13 @@ from Crypto.Util.number import bytes_to_long, long_to_bytes
 class TestCryptools(unittest.TestCase):
 
     @staticmethod
-    def generate_n(bits):
+    def generate_random_n(bits):
         p = RSA.utils.random_prime(bits // 2)
         q = RSA.utils.random_prime(bits // 2)
         return p * q, p, q
 
     def test_rsa_implementation(self):
-        n, p, q = self.generate_n(1024)
+        n, p, q = self.generate_random_n(1024)
         m = b"Testing Encryption Message"
         rsa = RSA.RSA(65537, n, p, q)
         c = rsa.encrypt(bytes_to_long(m))
@@ -22,7 +22,7 @@ class TestCryptools(unittest.TestCase):
         self.assertEqual(long_to_bytes(flag), m)
 
     def test_common_mod(self):
-        n = TestCryptools.generate_n(1024)[0]
+        n = TestCryptools.generate_random_n(1024)[0]
         e1 = 65537
         e2 = 3
 
@@ -84,6 +84,32 @@ class TestCryptools(unittest.TestCase):
         r = 2
         c, mr = secret(r)
         self.assertEqual(RSA.attacks.chosen_ciphertext_attack(e, n, r, mr), m)
+
+    def test_fermat_factorize(self):
+        n, p, q = self.generate_random_n(32)
+        fac = RSA.factor.fermat(n)
+        self.assertIn(fac, [p, q])
+        other_prime = n // fac
+        self.assertIn(other_prime, [p, q])
+
+    def test_pollard_rho_factorize(self):
+        n, p, q = self.generate_random_n(80)
+        fac = RSA.factor.pollard_rho(n)
+        self.assertIn(fac, [p, q])
+        other_prime = n // fac
+        self.assertIn(other_prime, [p, q])
+
+    def test_miller_rabin_primality_test(self):
+        prime = RSA.utils.random_prime(1024)
+        self.assertTrue(RSA.factor.miller_rabin(prime))
+        self.assertFalse(RSA.factor.miller_rabin(prime + 1))
+
+    def test_small_division(self):
+        n, p, q = self.generate_random_n(56)
+        fac = RSA.factor.small_division(n)
+        self.assertIn(fac, [p, q])
+        other_prime = n // fac
+        self.assertIn(other_prime, [p, q])
 
 
 if __name__ == '__main__':
