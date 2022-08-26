@@ -11,6 +11,6 @@ def nonce_reuse(known_plaintext, known_ciphertext, ciphertext):
     ct = long_to_bytes(int(ciphertext, 16))
     plaintext = []
     for c, k in zip(ct, keystream):
-        plaintext.append(chr(c ^ k))
+        plaintext.append(chr(c ^ k).encode("utf8"))
 
-    return "".join(plaintext)
+    return b"".join(plaintext)

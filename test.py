@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from cryptools import RSA
+from cryptools import RSA, ChaCha20
 from Crypto.Util.number import bytes_to_long, long_to_bytes
 
 
@@ -110,6 +110,13 @@ class TestCryptools(unittest.TestCase):
         self.assertIn(fac, [p, q])
         other_prime = n // fac
         self.assertIn(other_prime, [p, q])
+
+    def test_chacha20_nonce_reuse(self):
+        known_message = b"This is a known plaintext message that will be used in a chacha20 nonce reuse attack."
+        known_ciphertext = b'959d842da3b8b27d7f4941feb63f1888321fa3a1c2126287fecf4eb29b3bef8a5198ab424e1ba9253d29e85f886c8413d697eb1d69119125f02fc71ae92d24410ff6fe2efbfb9718a29812f1cfd3feec40d817028c'
+        secret_message = b"Secret Message!"
+        secret_ciphertext = b"92908e2ce6a5e1107b1a59f1be2d57"
+        self.assertEqual(ChaCha20.attacks.nonce_reuse(known_message, known_ciphertext, secret_ciphertext), secret_message)
 
 
 if __name__ == '__main__':
