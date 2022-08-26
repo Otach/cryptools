@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
 import unittest
-import cryptools
+from cryptools import RSA
+from Crypto.Util.number import bytes_to_long, long_to_bytes
 
 
 class TestCryptools(unittest.TestCase):
 
     @staticmethod
     def generate_n(bits):
-        p = cryptools.rsa.random_prime(1024)
-        q = cryptools.rsa.random_prime(1024)
-        return p * q
+        p = RSA.utils.random_prime(bits // 2)
+        q = RSA.utils.random_prime(bits // 2)
+        return p * q, p, q
 
     def test_rsa_implementation(self):
-        p = 997147
-        q = 876331
-        n = p * q
-        m = b"hoge"
-        rsa = cryptools.RSA(65537, n, p, q)
-        c = rsa.encrypt(cryptools.bytes_to_long(m))
+        n, p, q = self.generate_n(1024)
+        m = b"Testing Encryption Message"
+        rsa = RSA.RSA(65537, n, p, q)
+        c = rsa.encrypt(bytes_to_long(m))
         self.assertNotEqual(m, c)
         flag = rsa.decrypt(c)
-        self.assertEqual(cryptools.long_to_bytes(flag), m)
+        self.assertEqual(long_to_bytes(flag), m)
 
     def test_common_mod(self):
-        n = TestCryptools.generate_n(1024)
+        n = TestCryptools.generate_n(1024)[0]
         e1 = 65537
         e2 = 3
 
@@ -31,7 +30,7 @@ class TestCryptools(unittest.TestCase):
         c1 = pow(m, e1, n)
         c2 = pow(m, e2, n)
 
-        self.assertEqual(cryptools.common_modulus_attack(c1, c2, e1, e2, n), m)
+        self.assertEqual(RSA.attacks.common_modulus_attack(c1, c2, e1, e2, n), m)
 
     def test_wieners(self):
         n = 0x00d91f0102279d099a9aa3a819faefef8e39e71075c5ed59275ae33fd16f10c6b120fbc14f2b0e85b09b7372853c22b359fb4b850e0b66da55585e1221bc23d4a84bc0cce1c1f1c080c74520c3f7cb2d041bc2c372ae96a3b9344dc00b00a75873fd339121804b39b74969ceab850a5ce8c65860fa1e7cfafb052e994a832198ece195ee8bb427a04609b69f052b1d2818741604e2d1fc95008961365f0536f1d3d12b11f3b56f55aa478b18cc5e74918869d9ef8935ce29c66ac5abdde9cc44b8a33c4a3c057624bee9bdfeb8e296798c377110e2209b68fc500d872fd847fe0a7b41c6826b4db3645133a497424b5c111fc661e320b024bccf4b8120847fc92d
@@ -40,7 +39,7 @@ class TestCryptools(unittest.TestCase):
         m = 1234567890123456789012345678901234567890
         c = pow(m, e, n)
 
-        d = cryptools.wieners_attack(e, n)
+        d = RSA.attacks.wieners_attack(e, n)
         self.assertEqual(pow(c, d, n), m)
 
     def test_hasdats(self):
@@ -51,13 +50,13 @@ class TestCryptools(unittest.TestCase):
         # print("collecting e=%d pairs of (c, n)" % e)
         pairs = []
         for i in range(e):
-            p = cryptools.random_prime(1024)
-            q = cryptools.random_prime(1024)
+            p = RSA.utils.random_prime(1024)
+            q = RSA.utils.random_prime(1024)
             n = p * q
             c = pow(m, e, n)
             pairs.append((n, c))
 
-        self.assertEqual(cryptools.hastads_broadcast_attack(e, pairs), m)
+        self.assertEqual(RSA.attacks.hastads_broadcast_attack(e, pairs), m)
 
     def test_franklin(self):
         e = 3
@@ -68,7 +67,7 @@ class TestCryptools(unittest.TestCase):
 
         c1 = pow(m1, e, n)
         c2 = pow(m2, e, n)
-        self.assertEqual(cryptools.franklin_reiter_related_message_attack(e, n, c1, c2, 1, 1), m1)
+        self.assertEqual(RSA.attacks.franklin_reiter_related_message_attack(e, n, c1, c2, 1, 1), m1)
 
     def test_cca(self):
         n = 0x00a6ef4f3e5aa17855c988a66ce4521cc0221f302cddaf8b10ecd348f27464b465dd7e69983b2cced881bea51b4c6a41a32bc45b2693f89879910c9d332b38ef0ab26c74bff9fa44d6bed1401b8848af669daf4fc4c71902e38b7fd8d0abd364eb4a5f666e818eb342780ab9f177559bd62c0ce9e246b62ac6d982271cbd98e0e8d6c0aab810d3485a156a86193395006527a7d816d07e0fee11d5ea4cf00437ad27fec8dd9023d0133020106162d4d82471a26d5d29888f0221b64cda932dfa1e20c0970cf673b6aff466d583f7c2a48d0785e6334f89f1605e770b10740c13f9c58c010cda4db2c2a216f791aa0196291d832f75fcfc74d55e36980b81f70ca9
@@ -84,7 +83,7 @@ class TestCryptools(unittest.TestCase):
 
         r = 2
         c, mr = secret(r)
-        self.assertEqual(cryptools.chosen_ciphertext_attack(e, n, r, mr), m)
+        self.assertEqual(RSA.attacks.chosen_ciphertext_attack(e, n, r, mr), m)
 
 
 if __name__ == '__main__':

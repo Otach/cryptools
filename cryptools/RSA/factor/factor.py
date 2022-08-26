@@ -2,15 +2,7 @@
 
 from random import randint
 from math import gcd
-
-
-def isqrt(n):
-    x = n
-    y = (x + 1) // 2
-    while y < x:
-        x = y
-        y = (x + n // x) // 2
-    return x
+from ..utils import isqrt, is_square
 
 
 def small_division(n):
@@ -35,7 +27,7 @@ def miller_rabin(n, k=20):
 
     while d % 2 == 0:
         s += 1
-        d /= 2
+        d //= 2
 
     for i in range(k):
         a = randint(2, n - 1)
@@ -68,14 +60,6 @@ def pollard_rho(n):
 
         if d != n:
             return d
-
-
-def is_square(n):
-    if not n % 48 in (0, 1, 4, 9, 16, 25, 33, 36):
-        return False
-
-    x = isqrt(n)
-    return x * x == n
 
 
 def fermat(n):
